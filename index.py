@@ -6,7 +6,8 @@ app = FastAPI()
 
 # MySQL Configuration
 mysql_config = {
-    'host': 'localhost:330',
+    'host': 'localhost',
+    'port': 3306,
     'user': 'restapi_user',
     'password': 'xD*)J){XPf+)',
     'database': 'edgkuujo_rest-api'

@@ -33,7 +33,7 @@ async def create_upload_file(file: UploadFile = File(...)):
         # Insert file information into the database
         # ... (unchanged)
 
-        return JSONResponse(content={"message": "File uploaded successfully", "file_link": f"/uploads/{file.filename}"})
+        return JSONResponse(content={"message": "File uploaded successfully", "file_link": f"https://api-test-mzxz.onrender.com/uploads/{file.filename}"})
 
     except Error as e:
         return HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

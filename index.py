@@ -6,7 +6,10 @@ from mysql.connector import Error
 from pathlib import Path
 import os
 
-app = FastAPI()
+app = FastAPI(
+    title="NEAR BY TURF",
+    description='Add review image api',
+)
 
 # Database configuration
 # ... (unchanged)

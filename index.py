@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 
 app = FastAPI(
-    title="NEAR BY TURF",
+    title="NEAR BY TURF - sparteck",
     description='Add review image api',
 )
 

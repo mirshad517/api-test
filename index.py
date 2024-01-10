@@ -1,70 +1,45 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 import mysql.connector
+from mysql.connector import Error
+from pathlib import Path
+import os
 
 app = FastAPI()
 
-# MySQL Configuration
-mysql_config = {
-    'host': 'localhost',
-    'port': 3306,
-    'user': 'restapi_user',
-    'password': 'xD*)J){XPf+)',
-    'database': 'edgkuujo_rest-api'
-}
+# Database configuration
+# ... (unchanged)
 
-# Test MySQL connection
-try:
-    conn = mysql.connector.connect(**mysql_config)
-    conn.close()
-except mysql.connector.Error as e:
-    print(f"Error connecting to MySQL: {e}")
-    exit(1)
+# Uploads directory
+uploads_dir = Path("uploads")
+uploads_dir.mkdir(exist_ok=True)
 
-# Models
-class Item(BaseModel):
-    name: str
-    description: str = None
+# Initialize database connection
+# ... (unchanged)
 
-# Create a table if not exists
-conn = mysql.connector.connect(**mysql_config)
-cursor = conn.cursor()
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(50) NOT NULL,
-        description VARCHAR(255)
-    )
-""")
-conn.close()
+# Expose the "uploads" directory
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
-# Routes
-@app.post("/items/")
-async def create_item(item: Item):
-    conn = mysql.connector.connect(**mysql_config)
-    cursor = conn.cursor()
 
-    add_item = ("INSERT INTO items (name, description) VALUES (%s, %s)")
-    item_data = (item.name, item.description)
+@app.post("/upload-file/")
+async def create_upload_file(file: UploadFile = File(...)):
+    try:
+        # Save the uploaded file
+        file_path = uploads_dir / file.filename
+        with file_path.open("wb") as buffer:
+            buffer.write(file.file.read())
 
-    cursor.execute(add_item, item_data)
-    conn.commit()
+        # Insert file information into the database
+        # ... (unchanged)
 
-    new_item_id = cursor.lastrowid
-    conn.close()
-    return {"id": new_item_id, **item.dict()}
+        return JSONResponse(content={"message": "File uploaded successfully", "file_link": f"/uploads/{file.filename}"})
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    conn = mysql.connector.connect(**mysql_config)
-    cursor = conn.cursor(dictionary=True)
+    except Error as e:
+        return HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-    query = ("SELECT * FROM items WHERE id = %s")
-    cursor.execute(query, (item_id,))
 
-    item = cursor.fetchone()
+if __name__ == "__main__":
+    import uvicorn
 
-    conn.close()
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return item
+    uvicorn.run(app, host="127.0.0.1", port=8000)
